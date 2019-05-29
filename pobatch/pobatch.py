@@ -22,6 +22,7 @@ import argparse
 import subprocess
 import os
 import sys
+from geojson2id import idl
 from text_split import idsplit
 from idlist_orders import batch_order
 from msize import ordsize
@@ -39,6 +40,30 @@ def planet_quota():
         print(e)
 def planet_quota_from_parser(args):
     planet_quota()
+
+#Create ID List with structured JSON
+def idlist_from_parser(args):
+    print('')
+    if args.asset is None:
+        with open(os.path.join(lpath,'bundles.json')) as f:
+            r=json.load(f)
+            for key,value in r['bundles'].items():
+                mydict=r['bundles'][key]['assets']
+                for item_types in mydict:
+                    if args.item ==item_types:
+                        print('Assets for item '+str(args.item)+' of Bundle type '+str(key)+': '+str(', '.join(mydict[args.item])))
+        sys.exit()
+    idl(infile=args.input,
+        start=args.start,
+        end=args.end,
+        item=args.item,
+        asset=args.asset,
+        num=args.number,
+        cmin=args.cmin,
+        cmax=args.cmax,
+        ovp=args.overlap,
+        outfile=args.outfile,
+        filters=args.filters)
 
 # Split large idlist to smaller subparts
 def idsplit_from_parser(args):
@@ -81,6 +106,22 @@ def main(args=None):
 
     parser_planet_quota = subparsers.add_parser('quota', help='Prints your Planet Quota Details')
     parser_planet_quota.set_defaults(func=planet_quota_from_parser)
+
+    parser_idlist = subparsers.add_parser('idlist', help='Get idlist using geometry & filters')
+    required_named = parser_idlist.add_argument_group('Required named arguments.')
+    required_named.add_argument('--input', help='Input geometry file for now geojson/json/kml', required=True)
+    required_named.add_argument('--start', help='Start date in format YYYY-MM-DD', required=True)
+    required_named.add_argument('--end', help='End date in format YYYY-MM-DD', required=True)
+    required_named.add_argument('--item', help='Item Type PSScene4Band|PSOrthoTile|REOrthoTile etc', required=True)
+    required_named.add_argument('--asset', help='Asset Type analytic, analytic_sr,visual etc', default=None)
+    required_named.add_argument('--outfile', help='Output csv file', required=True)
+    optional_named = parser_idlist.add_argument_group('Optional named arguments')
+    optional_named.add_argument('--cmin', help="Minimum cloud cover", default=None)
+    optional_named.add_argument('--cmax', help="Maximum cloud cover", default=None)
+    optional_named.add_argument('--number', help="Total number of assets, give a large number if you are not sure", default=None)
+    optional_named.add_argument('--overlap', help="Percentage overlap of image with search area range between 0 to 100", default=None)
+    optional_named.add_argument('--filters', nargs='+',help="Add an additional string or range filter", default=None)
+    parser_idlist.set_defaults(func=idlist_from_parser)
 
     parser_idsplit = subparsers.add_parser('idsplit',help='Splits ID list incase you want to run them in small batches')
     parser_idsplit.add_argument('--idlist',help='Idlist txt file to split')
