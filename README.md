@@ -1,6 +1,5 @@
 # pobatch: porder wrapper for Ordersv2 Batch Client
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3066368.svg)](https://doi.org/10.5281/zenodo.3066368)
+![35ffb6a5-2b6f-4bd0-92b9-c974f0ede76e_200x200](https://user-images.githubusercontent.com/6677629/58644819-10500980-82d0-11e9-843b-9eea7f735be1.png) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3235557.svg)](https://doi.org/10.5281/zenodo.3235557)
 [![PyPI version](https://badge.fury.io/py/pobatch.svg)](https://badge.fury.io/py/pobatch)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -12,8 +11,8 @@
 If you find this tool useful, star and cite it as below
 
 ```
-Samapriya Roy. (2019, May 20). samapriya/pobatch: pobatch: porder wrapper for Ordersv2 Batch Client (Version 0.0.1). Zenodo.
-http://doi.org/10.5281/zenodo.3066368
+Samapriya Roy. (2019, May 30). samapriya/pobatch: pobatch: porder wrapper for Ordersv2 Batch Client (Version 0.0.2). Zenodo.
+http://doi.org/10.5281/zenodo.3235557
 ```
 
 ## Table of contents
