@@ -20,11 +20,11 @@ def readme():
         return f.read()
 setuptools.setup(
     name='pobatch',
-    version='0.0.2',
+    version='0.0.3',
     packages=['pobatch'],
     package_data={'': ['bundles.json']},
     url = 'https://github.com/samapriya/pobatch',
-    install_requires = ['requests>=2.19.1','planet>=1.2.1', 'porder>=0.3.2'],
+    install_requires = ['requests>=2.19.1','planet>=1.2.3', 'porder>=0.3.2'],
     license='Apache 2.0',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',

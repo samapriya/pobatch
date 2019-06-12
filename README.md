@@ -310,3 +310,9 @@ pobatch ordsize --infile "Path to order url list"
 ```
 pobatch downloader --infile "Path to order url list" --folder "download folder" --method "multipart"
 ```
+
+### Changelog
+
+**v0.0.3**
+* Added queue support to downloader for better handling order list
+* General improvements to overall tool
