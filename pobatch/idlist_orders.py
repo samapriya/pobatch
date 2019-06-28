@@ -111,6 +111,7 @@ def batch_order(infolder, outfile, max_conc, item, asset,boundary,projection,ker
                  jtext='porder order --name '+str(name)+' --idlist '+'"'+str(idlist)+'"'+' --item '+str(item)+' --asset '+str(asset)
             conc_count=conc()
             logging.info('Checking currently running orders: Total of '+str(conc_count)+' orders')
+            print(int(conc_count))
             while int(conc_count)>=int(max_conc):
                 print('Reached max concurrency: Waiting 5 minutes')
                 bar = progressbar.ProgressBar()
@@ -118,7 +119,7 @@ def batch_order(infolder, outfile, max_conc, item, asset,boundary,projection,ker
                     time.sleep(1)
                 conc_count=conc()
             orderurl=subprocess.check_output(jtext,shell=True)
-            urltext=orderurl.split('at ')[1].split(' and')[0]
+            urltext=orderurl.decode('ascii').split('at ')[1].split(' and')[0]
             logging.info('Order created at: '+str(urltext))
             with open(outfile,'a') as csvfile:
                 writer=csv.writer(csvfile,delimiter=',',lineterminator='\n')
