@@ -111,7 +111,6 @@ def batch_order(infolder, outfile, max_conc, item, asset,boundary,projection,ker
                  jtext='porder order --name '+str(name)+' --idlist '+'"'+str(idlist)+'"'+' --item '+str(item)+' --asset '+str(asset)
             conc_count=conc()
             logging.info('Checking currently running orders: Total of '+str(conc_count)+' orders')
-            print(int(conc_count))
             while int(conc_count)>=int(max_conc):
                 print('Reached max concurrency: Waiting 5 minutes')
                 bar = progressbar.ProgressBar()
