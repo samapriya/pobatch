@@ -312,6 +312,11 @@ pobatch downloader --infile "Path to order url list" --folder "download folder" 
 
 ### Changelog
 
+**v0.0.4**
+* Added quota tool to main to prevent compatability issues
+* Fixed issues with handling with and without op orders
+* Added improvements to make shell runs function properly.
+
 **v0.0.3**
 * Added queue support to downloader for better handling order list
 * General improvements to overall tool

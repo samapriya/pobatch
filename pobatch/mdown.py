@@ -49,11 +49,11 @@ def downloader(infile, folderpath, method):
                             logging.info('Attemting to download ' + str(resp['name']) + ' with ' + str(len(resp['products'][0]['item_ids'])) + ' assets')
                             time.sleep(1)
                             if method == 'download':
-                                subprocess.call('porder download --url ' + str(order_url) + ' --local ' + str(folderpath), shell=False)
+                                subprocess.call('porder download --url ' + str(order_url) + ' --local ' + str(folderpath), shell=True)
                             elif method == 'multipart':
-                                subprocess.call('porder multipart --url ' + str(order_url) + ' --local ' + str(folderpath), shell=False)
+                                subprocess.call('porder multipart --url ' + str(order_url) + ' --local ' + str(folderpath), shell=True)
                             elif method == 'multiproc':
-                                subprocess.call('porder multiproc --url ' + str(order_url) + ' --local ' + str(folderpath), shell=False)
+                                subprocess.call('porder multiproc --url ' + str(order_url) + ' --local ' + str(folderpath), shell=True)
                             #print('Number of orders remaining in url'+str(q.qsize()))
                         else:
                             if i==60: # Reset delay after reaching 60 seconds or 120 tries

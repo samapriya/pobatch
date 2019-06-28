@@ -29,7 +29,7 @@ def ordsize(infile):
                 print('')
                 logging.info('Processing order: ' + str(resp['name']))
                 time.sleep(1)
-                subprocess.call('porder ordersize --url ' + str(order_url), shell=False)
+                subprocess.call('porder ordersize --url ' + str(order_url), shell=True)
         except Exception as e:
             print(e)
             print('Issue with reading: ' + str(infile))

@@ -21,27 +21,74 @@ __license__ = "Apache 2.0"
 import argparse
 import subprocess
 import os
+import requests
 import sys
 from geojson2id import idl
 from text_split import idsplit
 from idlist_orders import batch_order
 from msize import ordsize
 from mdown import downloader
+from planet.api.auth import find_api_key
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 lpath=os.path.dirname(os.path.realpath(__file__))
 sys.path.append(lpath)
 
+# Get API Key: Requires user to have initialized Planet CLI
+try:
+    api_key = find_api_key()
+    os.environ['PLANET_API_KEY'] = find_api_key()
+except Exception as e:
+    print('Failed to get Planet Key')
+    sys.exit()
 
-#Get quota for your account
+
+# Function to get user's quota
 def planet_quota():
+    '''Print allocation and remaining quota in Sqkm.'''
     try:
-        subprocess.call('python planet_quota.py',shell=True)
-    except Exception as e:
-        print(e)
+        main = requests.get('https://api.planet.com/auth/v1/experimental/public/my/subscriptions', auth=(api_key, ''))
+        if main.status_code == 200:
+            content = main.json()
+            for item_id in content:
+                print(" ")
+                print(
+                    'Allocation Name: %s'
+                    % item_id['organization']['name'])
+                print(
+                    'Allocation active from: %s'
+                    % item_id['active_from'].split("T")[0])
+                print(
+                    'Quota Enabled: %s'
+                    % item_id['quota_enabled'])
+                print(
+                    'Total Quota in SqKm: %s'
+                    % item_id['quota_sqkm'])
+                print(
+                    'Total Quota used: %s'
+                    % item_id['quota_used'])
+                if (item_id['quota_sqkm'])is not None:
+                    leftquota = (float(
+                        item_id['quota_sqkm'] - float(item_id['quota_used'])))
+                    print(
+                        'Remaining Quota in SqKm: %s' % leftquota)
+                else:
+                    print('No Quota Allocated')
+                print('')
+        elif main.status_code == 500:
+            print('Temporary issue: Try again')
+        else:
+            print('Failed with exception code: ' + str(
+                main.status_code))
+
+    except IOError:
+        print('Initialize client or provide API Key')
+
+
 def planet_quota_from_parser(args):
     planet_quota()
 
-#Create ID List with structured JSON
+
+# Create ID List with structured JSON
 def idlist_from_parser(args):
     print('')
     if args.asset is None:
@@ -73,10 +120,10 @@ def idsplit_from_parser(args):
 #Place orders in folders
 def multiorder_from_parser(args):
     batch_order(infolder=args.infolder,
-        outfile=args.outfile,
-        max_conc=args.max,
-        item=args.item,
-        asset=args.asset,
+        outfile = args.outfile,
+        max_conc = args.max,
+        item = args.item,
+        asset = args.asset,
         op=args.op,
         boundary=args.boundary,
         projection=args.projection,

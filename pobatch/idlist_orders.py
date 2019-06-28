@@ -91,21 +91,24 @@ def batch_order(infolder, outfile, max_conc, item, asset,boundary,projection,ker
             azure=text[9]
             gcs=text[10]
             op = text[11]
-            jtext='porder order --name '+str(name)+' --idlist '+'"'+str(idlist)+'"'+' --item '+str(item)+' --asset '+str(asset)+' --boundary '+'"'+str(boundary)+'"'+' --projection '+'"'+str(projection)+'"'+' --kernel '+'"'+str(kernel)+'"'+' --compression '+'"'+str(compression)+'"'+' --aws '+'"'+str(aws)+'"'+' --azure '+'"'+str(azure)+'"'+' --gcs '+'"'+str(gcs)+'"'+' --op '+str(' '.join(op))
-            if compression is None:
-                jtext=jtext.replace('--compression "None" ',"")
-            if kernel is None:
-                jtext=jtext.replace('--kernel "None" ',"")
-            if projection is None:
-                jtext=jtext.replace('--projection "None" ',"")
-            if boundary is None:
-                jtext=jtext.replace('--boundary "None" ',"")
-            if aws is None:
-                jtext=jtext.replace('--aws "None" ',"")
-            if gcs is None:
-                jtext=jtext.replace('--gcs "None" ',"")
-            if azure is None:
-                jtext=jtext.replace('--azure "None" ',"")
+            if op is not None:
+                jtext='porder order --name '+str(name)+' --idlist '+'"'+str(idlist)+'"'+' --item '+str(item)+' --asset '+str(asset)+' --boundary '+'"'+str(boundary)+'"'+' --projection '+'"'+str(projection)+'"'+' --kernel '+'"'+str(kernel)+'"'+' --compression '+'"'+str(compression)+'"'+' --aws '+'"'+str(aws)+'"'+' --azure '+'"'+str(azure)+'"'+' --gcs '+'"'+str(gcs)+'"'+' --op '+str(' '.join(op))
+                if compression is None:
+                    jtext=jtext.replace('--compression "None" ',"")
+                if kernel is None:
+                    jtext=jtext.replace('--kernel "None" ',"")
+                if projection is None:
+                    jtext=jtext.replace('--projection "None" ',"")
+                if boundary is None:
+                    jtext=jtext.replace('--boundary "None" ',"")
+                if aws is None:
+                    jtext=jtext.replace('--aws "None" ',"")
+                if gcs is None:
+                    jtext=jtext.replace('--gcs "None" ',"")
+                if azure is None:
+                    jtext=jtext.replace('--azure "None" ',"")
+            elif op is None:
+                 jtext='porder order --name '+str(name)+' --idlist '+'"'+str(idlist)+'"'+' --item '+str(item)+' --asset '+str(asset)
             conc_count=conc()
             logging.info('Checking currently running orders: Total of '+str(conc_count)+' orders')
             while int(conc_count)>=int(max_conc):
@@ -114,7 +117,7 @@ def batch_order(infolder, outfile, max_conc, item, asset,boundary,projection,ker
                 for z in bar(range(300)):
                     time.sleep(1)
                 conc_count=conc()
-            orderurl=subprocess.check_output(jtext,shell=False)
+            orderurl=subprocess.check_output(jtext,shell=True)
             urltext=orderurl.split('at ')[1].split(' and')[0]
             logging.info('Order created at: '+str(urltext))
             with open(outfile,'a') as csvfile:
