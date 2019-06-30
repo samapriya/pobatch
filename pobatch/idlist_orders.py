@@ -118,7 +118,7 @@ def batch_order(infolder, outfile, max_conc, item, asset,boundary,projection,ker
                     time.sleep(1)
                 conc_count=conc()
             orderurl=subprocess.check_output(jtext,shell=True)
-            urltext=orderurl.decode('ascii').split('at ')[1].split(' and')[0]
+            urltext=orderurl.decode('utf-8').split('at ')[1].split(' and')[0]
             logging.info('Order created at: '+str(urltext))
             with open(outfile,'a') as csvfile:
                 writer=csv.writer(csvfile,delimiter=',',lineterminator='\n')
