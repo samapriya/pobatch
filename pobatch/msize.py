@@ -3,11 +3,8 @@ import subprocess
 import requests
 import time
 import sys
-import logging
 from planet.api.auth import find_api_key
 
-# Setup logging
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 try:
     PL_API_KEY = find_api_key()
@@ -27,7 +24,7 @@ def ordsize(infile):
                 response = SESSION.get(order_url)
                 resp = response.json()
                 print('')
-                logging.info('Processing order: ' + str(resp['name']))
+                print('Processing order: ' + str(resp['name']))
                 time.sleep(1)
                 subprocess.call('porder ordersize --url ' + str(order_url), shell=True)
         except Exception as e:

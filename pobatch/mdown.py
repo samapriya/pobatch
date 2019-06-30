@@ -4,7 +4,6 @@ import subprocess
 import requests
 import time
 import sys
-import logging
 from planet.api.auth import find_api_key
 
 
@@ -15,8 +14,6 @@ except ImportError:
     import queue
     q = queue.Queue()
 
-# Setup logging
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 
 # Get API Key
 try:
@@ -46,7 +43,7 @@ def downloader(infile, folderpath, method):
                     if response.status_code==200:
                         resp = response.json()
                         if resp['state']=='success':
-                            logging.info('Attemting to download ' + str(resp['name']) + ' with ' + str(len(resp['products'][0]['item_ids'])) + ' assets')
+                            print('Attemting to download ' + str(resp['name']) + ' with ' + str(len(resp['products'][0]['item_ids'])) + ' assets')
                             time.sleep(1)
                             if method == 'download':
                                 subprocess.call('porder download --url ' + str(order_url) + ' --local ' + str(folderpath), shell=True)

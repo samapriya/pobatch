@@ -20,7 +20,7 @@ def readme():
         return f.read()
 setuptools.setup(
     name='pobatch',
-    version='0.0.3',
+    version='0.0.5',
     packages=['pobatch'],
     package_data={'': ['bundles.json']},
     url = 'https://github.com/samapriya/pobatch',

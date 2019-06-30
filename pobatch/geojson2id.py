@@ -1,3 +1,4 @@
+from __future__ import print_function
 __copyright__ = """
 
     Copyright 2019 Samapriya Roy
@@ -186,6 +187,7 @@ def idl(**kwargs):
     else:
         temp=tempsingle
         temp['coordinates']=aoi_geom
+    #print(temp)
     sgeom=filters.geom_filter(temp)
     aoi_shape = shape(temp)
     date_filter = filters.date_range('acquired', gte=start,lte=end)
@@ -218,6 +220,7 @@ def idl(**kwargs):
             intersect=(aoi_shape).intersection(s)
         proj = partial(pyproj.transform, pyproj.Proj(init='epsg:4326'),
             pyproj.Proj(init='epsg:'+str(epsgcode)))
+        print('Processing ' + str(len(ar) + 1) + ' items', end='\r')
         if transform(proj,aoi_shape).area>transform(proj,s).area:
             if (transform(proj,intersect).area/transform(proj,s).area*100)>=ovp:
                 ar.append(transform(proj,intersect).area/1000000)

@@ -312,6 +312,11 @@ pobatch downloader --infile "Path to order url list" --folder "download folder" 
 
 ### Changelog
 
+**v0.0.5**
+* Fixed issues with utf decoding
+* Logging and verbose call issue fixed
+* Now returns number of items found while searching using idlist
+
 **v0.0.4**
 * Added quota tool to main to prevent compatability issues
 * Fixed issues with handling with and without op orders

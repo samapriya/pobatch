@@ -2,7 +2,6 @@ import os
 import time
 import pendulum
 import requests
-import logging
 import subprocess
 import progressbar
 import sys
@@ -16,7 +15,6 @@ except ImportError:
 
 from planet.api.auth import find_api_key
 
-logging.basicConfig(format='%(asctime)s - %(message)s', level=logging.INFO)
 try:
     PL_API_KEY = find_api_key()
 except Exception as e:
@@ -24,9 +22,6 @@ except Exception as e:
     sys.exit()
 SESSION = requests.Session()
 SESSION.auth = (PL_API_KEY, '')
-
-# Create an empty queue
-
 
 
 # Check running orders
@@ -77,7 +72,7 @@ def batch_order(infolder, outfile, max_conc, item, asset,boundary,projection,ker
     total=q.qsize()
     while not q.empty():
         try:
-            logging.info('Processing: '+str(n)+' of '+str(total))
+            print('Processing: '+str(n)+' of '+str(total))
             text = q.get()
             name = text[0]
             idlist = text[1]
@@ -110,7 +105,7 @@ def batch_order(infolder, outfile, max_conc, item, asset,boundary,projection,ker
             elif op is None:
                  jtext='porder order --name '+str(name)+' --idlist '+'"'+str(idlist)+'"'+' --item '+str(item)+' --asset '+str(asset)
             conc_count=conc()
-            logging.info('Checking currently running orders: Total of '+str(conc_count)+' orders')
+            print('Checking currently running orders: Total of '+str(conc_count)+' orders')
             while int(conc_count)>=int(max_conc):
                 print('Reached max concurrency: Waiting 5 minutes')
                 bar = progressbar.ProgressBar()
@@ -119,7 +114,7 @@ def batch_order(infolder, outfile, max_conc, item, asset,boundary,projection,ker
                 conc_count=conc()
             orderurl=subprocess.check_output(jtext,shell=True)
             urltext=orderurl.decode('utf-8').split('at ')[1].split(' and')[0]
-            logging.info('Order created at: '+str(urltext))
+            print('Order created at: '+str(urltext))
             with open(outfile,'a') as csvfile:
                 writer=csv.writer(csvfile,delimiter=',',lineterminator='\n')
                 writer.writerow([str(urltext)])
