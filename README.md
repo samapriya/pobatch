@@ -312,6 +312,11 @@ pobatch downloader --infile "Path to order url list" --folder "download folder" 
 
 ### Changelog
 
+**v0.0.6**
+* Fixed bundles and removed deprecated bundle types.
+* Created errorlog if issues submitting orders
+* Now downloads both complete and partial order outputs.
+
 **v0.0.5**
 * Fixed issues with utf decoding
 * Logging and verbose call issue fixed

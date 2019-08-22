@@ -42,7 +42,7 @@ def downloader(infile, folderpath, method):
                     response = SESSION.get(order_url)
                     if response.status_code==200:
                         resp = response.json()
-                        if resp['state']=='success':
+                        if resp['state']=='success' or resp['state']=='partial':
                             print('Attemting to download ' + str(resp['name']) + ' with ' + str(len(resp['products'][0]['item_ids'])) + ' assets')
                             time.sleep(1)
                             if method == 'download':

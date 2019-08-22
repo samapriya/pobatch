@@ -60,9 +60,10 @@ def conc():
     return sum(runlist)
 
 
-def batch_order(infolder, outfile, max_conc, item, asset,boundary,projection,kernel,compression,aws,azure,gcs,op):
+def batch_order(infolder, outfile, errorlog,max_conc, item, asset,boundary,projection,kernel,compression,aws,azure,gcs,op):
     n = 1
     open(outfile, 'w')
+    open(errorlog, 'w')
     for files in os.listdir(infolder):
         if files.endswith('.csv'):
             filebase = os.path.basename(files).split('.')[0]
@@ -113,11 +114,17 @@ def batch_order(infolder, outfile, max_conc, item, asset,boundary,projection,ker
                     time.sleep(1)
                 conc_count=conc()
             orderurl=subprocess.check_output(jtext,shell=True)
-            urltext=orderurl.decode('utf-8').split('at ')[1].split(' and')[0]
-            print('Order created at: '+str(urltext))
-            with open(outfile,'a') as csvfile:
-                writer=csv.writer(csvfile,delimiter=',',lineterminator='\n')
-                writer.writerow([str(urltext)])
+            try:
+                urltext=orderurl.decode('utf-8').split('at ')[1].split(' and')[0]
+                print('Order created at: '+str(urltext))
+                with open(outfile,'a') as csvfile:
+                    writer=csv.writer(csvfile,delimiter=',',lineterminator='\n')
+                    writer.writerow([str(urltext)])
+            except Exception as e:
+                print('Idlist '+str(idlist)+' failed to place order')
+                with open(errorlog,'a') as csvfile:
+                    writer=csv.writer(csvfile,delimiter=',',lineterminator='\n')
+                    writer.writerow([str(idlist),orderurl.decode('utf-8')])
             time.sleep(1)
             q.task_done()
             n = n + 1

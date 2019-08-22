@@ -52,6 +52,12 @@ def planet_quota():
             for item_id in content:
                 print(" ")
                 print(
+                    'Subscription ID: %s'
+                    % item_id['id'])
+                print(
+                    'Plan ID: %s'
+                    % item_id['plan_id'])
+                print(
                     'Allocation Name: %s'
                     % item_id['organization']['name'])
                 print(
@@ -121,6 +127,7 @@ def idsplit_from_parser(args):
 def multiorder_from_parser(args):
     batch_order(infolder=args.infolder,
         outfile = args.outfile,
+        errorlog=args.errorlog,
         max_conc = args.max,
         item = args.item,
         asset = args.asset,
@@ -180,6 +187,7 @@ def main(args=None):
     required_named = parser_multiorder.add_argument_group('Required named arguments.')
     required_named.add_argument('--infolder', help='Folder with multiple order list', required=True)
     required_named.add_argument('--outfile', help='CSV file with list of order urls', required=True)
+    required_named.add_argument('--errorlog', help='Path to idlist it could not submit,error message log csv file', required=True)
     required_named.add_argument('--max', help='Maximum concurrent orders allowed on account', required=True)
     required_named.add_argument('--item', help='Item Type PSScene4Band|PSOrthoTile|REOrthoTile etc', required=True)
     required_named.add_argument('--asset', help='Asset Type analytic, analytic_sr,visual etc', required=True)
