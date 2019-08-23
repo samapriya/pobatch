@@ -43,7 +43,7 @@ def downloader(infile, folderpath, method):
                     if response.status_code==200:
                         resp = response.json()
                         if resp['state']=='success' or resp['state']=='partial':
-                            print('Attemting to download ' + str(resp['name']) + ' with ' + str(len(resp['products'][0]['item_ids'])) + ' assets')
+                            print('\n'+'Attemting to download ' + str(resp['name']) + ' with ' + str(len(resp['products'][0]['item_ids'])) + ' assets')
                             time.sleep(1)
                             if method == 'download':
                                 subprocess.call('porder download --url ' + str(order_url) + ' --local ' + str(folderpath), shell=True)
@@ -65,7 +65,7 @@ def downloader(infile, folderpath, method):
                     print('Issue with reading: ' + str(infile))
         except Exception as e:
             print(e)
-            print('Issue with reading: ' + str(infile))
+            print('\n'+'Issue with reading: ' + str(infile))
         except (KeyboardInterrupt, SystemExit) as e:
             print('\n')
             print('Program escaped by User')

@@ -60,7 +60,7 @@ def conc():
     return sum(runlist)
 
 
-def batch_order(infolder, outfile, errorlog,max_conc, item, asset,boundary,projection,kernel,compression,aws,azure,gcs,op):
+def batch_order(infolder, outfile, errorlog,max_conc, item, bundle, sid, boundary,projection,kernel,compression,aws,azure,gcs,op):
     n = 1
     open(outfile, 'w')
     open(errorlog, 'w')
@@ -69,7 +69,7 @@ def batch_order(infolder, outfile, errorlog,max_conc, item, asset,boundary,proje
             filebase = os.path.basename(files).split('.')[0]
             name = filebase + '-' + str(pendulum.now()).split('T')[0]
             idlist = os.path.join(infolder, files)
-            q.put([name, idlist, item, asset, boundary, projection,kernel,compression,aws,azure,gcs,op])
+            q.put([name, idlist, item, bundle, sid, boundary, projection,kernel,compression,aws,azure,gcs,op])
     total=q.qsize()
     while not q.empty():
         try:
@@ -78,17 +78,20 @@ def batch_order(infolder, outfile, errorlog,max_conc, item, asset,boundary,proje
             name = text[0]
             idlist = text[1]
             item = text[2]
-            asset = text[3]
-            boundary = text[4]
-            projection=text[5]
-            kernel=text[6]
-            compression=text[7]
-            aws=text[8]
-            azure=text[9]
-            gcs=text[10]
-            op = text[11]
+            bundle = text[3]
+            sid=text[4]
+            boundary = text[5]
+            projection=text[6]
+            kernel=text[7]
+            compression=text[8]
+            aws=text[9]
+            azure=text[10]
+            gcs=text[11]
+            op = text[12]
             if op is not None:
-                jtext='porder order --name '+str(name)+' --idlist '+'"'+str(idlist)+'"'+' --item '+str(item)+' --asset '+str(asset)+' --boundary '+'"'+str(boundary)+'"'+' --projection '+'"'+str(projection)+'"'+' --kernel '+'"'+str(kernel)+'"'+' --compression '+'"'+str(compression)+'"'+' --aws '+'"'+str(aws)+'"'+' --azure '+'"'+str(azure)+'"'+' --gcs '+'"'+str(gcs)+'"'+' --op '+str(' '.join(op))
+                jtext='porder order --name '+str(name)+' --idlist '+'"'+str(idlist)+'"'+' --item '+str(item)+' --bundle '+str(bundle)+' --sid '+'"'+str(sid)+'"'+' --boundary '+'"'+str(boundary)+'"'+' --projection '+'"'+str(projection)+'"'+' --kernel '+'"'+str(kernel)+'"'+' --compression '+'"'+str(compression)+'"'+' --aws '+'"'+str(aws)+'"'+' --azure '+'"'+str(azure)+'"'+' --gcs '+'"'+str(gcs)+'"'+' --op '+str(' '.join(op))
+                if sid is None:
+                    jtext=jtext.replace('--sid "None" ',"")
                 if compression is None:
                     jtext=jtext.replace('--compression "None" ',"")
                 if kernel is None:
@@ -103,8 +106,10 @@ def batch_order(infolder, outfile, errorlog,max_conc, item, asset,boundary,proje
                     jtext=jtext.replace('--gcs "None" ',"")
                 if azure is None:
                     jtext=jtext.replace('--azure "None" ',"")
-            elif op is None:
-                 jtext='porder order --name '+str(name)+' --idlist '+'"'+str(idlist)+'"'+' --item '+str(item)+' --asset '+str(asset)
+            elif op is None and sid is not None:
+                 jtext='porder order --name '+str(name)+' --idlist '+'"'+str(idlist)+'"'+' --item '+str(item)+' --bundle '+str(bundle)+' --sid '+str(sid)
+            elif op is None and sid is None:
+                 jtext='porder order --name '+str(name)+' --idlist '+'"'+str(idlist)+'"'+' --item '+str(item)+' --bundle '+str(bundle)
             conc_count=conc()
             print('Checking currently running orders: Total of '+str(conc_count)+' orders')
             while int(conc_count)>=int(max_conc):

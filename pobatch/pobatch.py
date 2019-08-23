@@ -23,6 +23,7 @@ import subprocess
 import os
 import requests
 import sys
+import pkg_resources
 from geojson2id import idl
 from text_split import idsplit
 from idlist_orders import batch_order
@@ -40,6 +41,14 @@ try:
 except Exception as e:
     print('Failed to get Planet Key')
     sys.exit()
+
+
+# Get package version
+def pobatch_version():
+    print('Running porder version:' +str(pkg_resources.get_distribution("porder").version))
+    print('Running pobatch version:' +str(pkg_resources.get_distribution("pobatch").version))
+def version_from_parser(args):
+    pobatch_version()
 
 
 # Function to get user's quota
@@ -123,6 +132,19 @@ def idsplit_from_parser(args):
     idsplit(infile=args.idlist,linenum=args.lines,
         output=args.local)
 
+
+# Get bundles
+def bundles(item):
+    with open(os.path.join(lpath,'bundles.json')) as f:
+        r=json.load(f)
+        for key,value in r['bundles'].items():
+            mydict=r['bundles'][key]['assets']
+            for item_types in mydict:
+                if item ==item_types:
+                    print('Assets for item '+str(item)+' of Bundle type '+str(key)+': '+'\n'+str(', '.join(mydict[item]))+'\n')
+def bundles_from_parser(args):
+    bundles(item=args.item)
+
 #Place orders in folders
 def multiorder_from_parser(args):
     batch_order(infolder=args.infolder,
@@ -130,7 +152,8 @@ def multiorder_from_parser(args):
         errorlog=args.errorlog,
         max_conc = args.max,
         item = args.item,
-        asset = args.asset,
+        bundle = args.bundle,
+        sid=args.sid,
         op=args.op,
         boundary=args.boundary,
         projection=args.projection,
@@ -158,6 +181,9 @@ def main(args=None):
     parser = argparse.ArgumentParser(description='porder wrapper for Ordersv2 Batch Client')
     subparsers = parser.add_subparsers()
 
+    parser_version = subparsers.add_parser('version', help='Prints porder version and exists')
+    parser_version.set_defaults(func=version_from_parser)
+
     parser_planet_quota = subparsers.add_parser('quota', help='Prints your Planet Quota Details')
     parser_planet_quota.set_defaults(func=planet_quota_from_parser)
 
@@ -183,6 +209,10 @@ def main(args=None):
     parser_idsplit.add_argument('--local',help='Output folder where split files will be exported')
     parser_idsplit.set_defaults(func=idsplit_from_parser)
 
+    parser_bundles = subparsers.add_parser('bundles',help='Check bundles of assets for given item type')
+    parser_bundles.add_argument('--item',help='Item type')
+    parser_bundles.set_defaults(func=bundles_from_parser)
+
     parser_multiorder = subparsers.add_parser('multiorder', help='Place multiple orders based on idlists in folder')
     required_named = parser_multiorder.add_argument_group('Required named arguments.')
     required_named.add_argument('--infolder', help='Folder with multiple order list', required=True)
@@ -190,8 +220,9 @@ def main(args=None):
     required_named.add_argument('--errorlog', help='Path to idlist it could not submit,error message log csv file', required=True)
     required_named.add_argument('--max', help='Maximum concurrent orders allowed on account', required=True)
     required_named.add_argument('--item', help='Item Type PSScene4Band|PSOrthoTile|REOrthoTile etc', required=True)
-    required_named.add_argument('--asset', help='Asset Type analytic, analytic_sr,visual etc', required=True)
+    required_named.add_argument('--bundle', help='Bundle Type: analytic, analytic_sr,analytic_sr_udm2', required=True)
     optional_named = parser_multiorder.add_argument_group('Optional named arguments')
+    optional_named.add_argument('--sid', help='Subscription ID',default=None)
     optional_named.add_argument('--boundary', help='Boundary/geometry for clip operation geojson|json|kml',default=None)
     optional_named.add_argument('--projection', help='Projection for reproject operation of type "EPSG:4326"',default=None)
     optional_named.add_argument('--kernel', help='Resampling kernel used "near", "bilinear", "cubic", "cubicspline", "lanczos", "average" and "mode"',default=None)

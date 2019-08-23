@@ -312,6 +312,11 @@ pobatch downloader --infile "Path to order url list" --folder "download folder" 
 
 ### Changelog
 
+**v0.0.7**
+* Added bundle and subscription id arguments to multiorder tool.
+* Updated idlist tool to handle multipolygon geometry better
+* General improvements.
+
 **v0.0.6**
 * Fixed bundles and removed deprecated bundle types.
 * Created errorlog if issues submitting orders
