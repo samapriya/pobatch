@@ -19,6 +19,7 @@ http://doi.org/10.5281/zenodo.3376975
 * [Installation](#installation)
 * [Getting started](#getting-started)
 * [porder wrapper for Ordersv2 Batch Client](#porder wrapper for Ordersv2 Batch Client)
+    * [version](version)
     * [quota](#quota)
     * [idlist](#idlist)
     * [idsplit](#idsplit)
@@ -65,17 +66,20 @@ Installation is an optional step; the application can also be run directly by ex
 Make sure you initialized planet client by typing ```planet init``` or ```export``` or ```set PL_API_KEY=Your API Key``` As usual, to print help:
 
 ```
-pobatch -h
-usage: pobatch [-h] {idsplit,multiorder,ordsize,downloader} ...
+usage: pobatch [-h]
+               {version,quota,idlist,idsplit,bundles,multiorder,ordsize,downloader}
+               ...
 
 porder wrapper for Ordersv2 Batch Client
 
 positional arguments:
-  {quota,idsplit,multiorder,ordsize,downloader}
-    idlist              Get idlist using geometry & filters
+  {version,quota,idlist,idsplit,bundles,multiorder,ordsize,downloader}
+    version             Prints porder version and exists
     quota               Prints your Planet Quota Details
+    idlist              Get idlist using geometry & filters
     idsplit             Splits ID list incase you want to run them in small
                         batches
+    bundles             Check bundles of assets for given item type
     multiorder          Place multiple orders based on idlists in folder
     ordsize             Estimates total download size for each completed
                         order(Takes times)
@@ -90,11 +94,18 @@ To obtain help for a specific functionality, simply call it with _help_ switch, 
 ## porder wrapper for Ordersv2 Batch Client
 The tool is built as a wrapper around the [porder tool](https://github.com/samapriya/porder). The **porder tool** contains additionally useful tools such as convert shapefile to geojson, base64 encode your gcs credentials, simplify your geometry to fit the 500 vertices requirements and so on. So the idea is to use both of those tools in conjunction and make desired pipelines as needed. This tools is created to give the user some control over long and tedious order queue and implement push and pull of data in a batch manner.
 
+### version
+This prints the tool version and escapes. Simple use would be
+
+```
+pobatch version
+```
+
 ### quota
 Just a simple tool to print your planet subscription quota quickly.
 
 ```
-porder quota
+pobatch quota
 ```
 
 ### idlist
@@ -109,9 +120,9 @@ Create an idlist for your geometry based on some basic filters, including geomet
 ```
 pobatch idlist -h
 usage: pobatch idlist [-h] --input INPUT --start START --end END --item ITEM
-                     [--asset ASSET] --outfile OUTFILE [--cmin CMIN]
-                     [--cmax CMAX] [--number NUMBER] [--overlap OVERLAP]
-                     [--filters FILTERS [FILTERS ...]]
+                      [--asset ASSET] --outfile OUTFILE [--cmin CMIN]
+                      [--cmax CMAX] [--number NUMBER] [--overlap OVERLAP]
+                      [--filters FILTERS [FILTERS ...]]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -133,7 +144,6 @@ Optional named arguments:
                         between 0 to 100
   --filters FILTERS [FILTERS ...]
                         Add an additional string or range filter
-
 ```
 
 A simple setup would be the following for 800 max item ids and an overlap of 5% with the geometry we pass to the filter
@@ -214,8 +224,10 @@ Modified Soil-adjusted Vegetation Index v2 (MSAVI2) | [Qi 1994](https://www.scie
 This tool makes use of the FIFO (first in first out) concept in queue implementation in python. It checks to see if you have reached your concurrent order limit and then waits for 5 minutes before trying to place the order again iteratively.
 
 ```
-usage: pobatch multiorder [-h] --infolder INFOLDER --outfile OUTFILE --max MAX
-                          --item ITEM --asset ASSET [--boundary BOUNDARY]
+pobatch multiorder -h
+usage: pobatch multiorder [-h] --infolder INFOLDER --outfile OUTFILE
+                          --errorlog ERRORLOG --max MAX --item ITEM --bundle
+                          BUNDLE [--sid SID] [--boundary BOUNDARY]
                           [--projection PROJECTION] [--kernel KERNEL]
                           [--compression COMPRESSION] [--aws AWS]
                           [--azure AZURE] [--gcs GCS] [--op OP [OP ...]]
@@ -226,11 +238,14 @@ optional arguments:
 Required named arguments.:
   --infolder INFOLDER   Folder with multiple order list
   --outfile OUTFILE     CSV file with list of order urls
+  --errorlog ERRORLOG   Path to idlist it could not submit,error message log
+                        csv file
   --max MAX             Maximum concurrent orders allowed on account
   --item ITEM           Item Type PSScene4Band|PSOrthoTile|REOrthoTile etc
-  --asset ASSET         Asset Type analytic, analytic_sr,visual etc
+  --bundle BUNDLE       Bundle Type: analytic, analytic_sr,analytic_sr_udm2
 
 Optional named arguments:
+  --sid SID             Subscription ID
   --boundary BOUNDARY   Boundary/geometry for clip operation geojson|json|kml
   --projection PROJECTION
                         Projection for reproject operation of type "EPSG:4326"
