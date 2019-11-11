@@ -31,7 +31,7 @@ def downloader(infile, folderpath, method):
             reader = csv.reader(f)
             your_list = list(reader)
             for row in your_list:
-                order_url = row[0]
+                order_url = row[1]
                 q.put(order_url)
             i=0.5
             while not q.empty():

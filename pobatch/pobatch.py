@@ -21,8 +21,11 @@ __license__ = "Apache 2.0"
 import argparse
 import subprocess
 import os
+import csv
+import time
 import requests
 import sys
+import json
 import pkg_resources
 from geojson2id import idl
 from text_split import idsplit
@@ -30,17 +33,13 @@ from idlist_orders import batch_order
 from msize import ordsize
 from mdown import downloader
 from planet.api.auth import find_api_key
+from prettytable import PrettyTable
 os.chdir(os.path.dirname(os.path.realpath(__file__)))
 lpath=os.path.dirname(os.path.realpath(__file__))
 sys.path.append(lpath)
 
-# Get API Key: Requires user to have initialized Planet CLI
-try:
-    api_key = find_api_key()
-    os.environ['PLANET_API_KEY'] = find_api_key()
-except Exception as e:
-    print('Failed to get Planet Key')
-    sys.exit()
+x = PrettyTable()
+
 
 
 # Get package version
@@ -53,6 +52,14 @@ def version_from_parser(args):
 
 # Function to get user's quota
 def planet_quota():
+    # Get API Key: Requires user to have initialized Planet CLI
+    try:
+        api_key = find_api_key()
+        os.environ['PLANET_API_KEY'] = find_api_key()
+    except Exception as e:
+        print('Failed to get Planet Key')
+        sys.exit()
+
     '''Print allocation and remaining quota in Sqkm.'''
     try:
         main = requests.get('https://api.planet.com/auth/v1/experimental/public/my/subscriptions', auth=(api_key, ''))
@@ -141,16 +148,97 @@ def bundles(item):
             mydict=r['bundles'][key]['assets']
             for item_types in mydict:
                 if item ==item_types:
-                    print('Assets for item '+str(item)+' of Bundle type '+str(key)+': '+'\n'+str(', '.join(mydict[item]))+'\n')
+                    print('Bundle type: '+str(key)+'\n'+str(', '.join(mydict[item]))+'\n')
 def bundles_from_parser(args):
     bundles(item=args.item)
+
+# Get order status
+def ordstatus(orderlist):
+    print('Running Order Status check')
+    # Get API Key: Requires user to have initialized Planet CLI
+    try:
+        api_key = find_api_key()
+        os.environ['PLANET_API_KEY'] = find_api_key()
+        SESSION = requests.Session()
+        SESSION.auth = (api_key, '')
+    except Exception as e:
+        print('Failed to get Planet Key')
+        sys.exit()
+    with open(orderlist) as f:
+        try:
+            reader = csv.reader(f)
+            your_list = list(reader)
+            i=1
+            for row in your_list:
+                order_url = row[1]
+                response = SESSION.get(order_url)
+                if response.status_code == 200:
+                    r=response.json()
+                    try:
+                        x.field_names = ["index","name", "status"]
+                        x.add_row([i,r["name"], r['state']])
+                        i=i+1
+                    except Exception as e:
+                        print(e)
+                    time.sleep(0.3)
+                elif response.status_code == 429:
+                    while response.status_code == 429:
+                        response = SESSION.get(order_url)
+                        if response.status_code == 200:
+                            r=response.json()
+                            try:
+                                x.field_names = ["index","name", "status"]
+                                x.add_row([i,r["name"], r['state']])
+                                i=i+1
+                            except Exception as e:
+                                print(e)
+                else:
+                    print(response.status_code)
+        except Exception as e:
+            print(e)
+    print(x)
+
+def status_from_parser(args):
+    ordstatus(orderlist=args.orderlist)
+
+#Get concurrent orders that are running
+def stats():
+    # Get API Key: Requires user to have initialized Planet CLI
+    try:
+        api_key = find_api_key()
+        os.environ['PLANET_API_KEY'] = find_api_key()
+    except Exception as e:
+        print('Failed to get Planet Key: Try planet init')
+        sys.exit()
+
+
+    SESSION = requests.Session()
+    SESSION.auth = (api_key, '')
+    print('Checking on all running orders...')
+    result = SESSION.get('https://api.planet.com/compute/ops/stats/orders/v2')
+    if int(result.status_code)==200:
+        page=result.json()
+        try:
+            print('\n'+'Total queued order for organization: '+str(page['organization']['queued_orders']))
+            print('Total running orders for organization: '+str(page['organization']['running_orders']))
+            print('\n'+'Total queued orders for user: '+str(page['user']['queued_orders']))
+            print('Total running orders for user: '+str(page['user']['running_orders']))
+        except Exception as e:
+            print(e)
+    elif int(result.status_code)==401:
+        print('Access denied - insufficient privileges')
+    elif int(result.status_code)==500:
+        print('Server Error')
+    else:
+        print('Failed with '+str(result.status_code)+' '+str(result.text))
+def stats_from_parser(args):
+    stats()
 
 #Place orders in folders
 def multiorder_from_parser(args):
     batch_order(infolder=args.infolder,
         outfile = args.outfile,
         errorlog=args.errorlog,
-        max_conc = args.max,
         item = args.item,
         bundle = args.bundle,
         sid=args.sid,
@@ -218,7 +306,6 @@ def main(args=None):
     required_named.add_argument('--infolder', help='Folder with multiple order list', required=True)
     required_named.add_argument('--outfile', help='CSV file with list of order urls', required=True)
     required_named.add_argument('--errorlog', help='Path to idlist it could not submit,error message log csv file', required=True)
-    required_named.add_argument('--max', help='Maximum concurrent orders allowed on account', required=True)
     required_named.add_argument('--item', help='Item Type PSScene4Band|PSOrthoTile|REOrthoTile etc', required=True)
     required_named.add_argument('--bundle', help='Bundle Type: analytic, analytic_sr,analytic_sr_udm2', required=True)
     optional_named = parser_multiorder.add_argument_group('Optional named arguments')
@@ -232,6 +319,13 @@ def main(args=None):
     optional_named.add_argument('--gcs', help='GCS cloud credentials config yml file',default=None)
     optional_named.add_argument('--op', nargs='+',help="Add operations, delivery & notification clip|toar|composite|zip|zipall|compression|projection|kernel|aws|azure|gcs|email <Choose indices from>: ndvi|gndvi|bndvi|ndwi|tvi|osavi|evi2|msavi2|sr",default=None)
     parser_multiorder.set_defaults(func=multiorder_from_parser)
+
+    parser_ordstatus = subparsers.add_parser('status',help='Check order status on submitted orders')
+    parser_ordstatus.add_argument('--orderlist',help='Orderlist created earlier')
+    parser_ordstatus.set_defaults(func=status_from_parser)
+
+    parser_stats = subparsers.add_parser('stats', help='Prints number of orders queued and running for org & user')
+    parser_stats.set_defaults(func=stats_from_parser)
 
     parser_ordsize = subparsers.add_parser('ordsize', help='Estimates total download size for each completed order(Takes times)')
     required_named = parser_ordsize.add_argument_group('Required named arguments.')

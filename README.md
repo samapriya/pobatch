@@ -24,6 +24,8 @@ http://doi.org/10.5281/zenodo.3376975
     * [idlist](#idlist)
     * [idsplit](#idsplit)
     * [multiorder](#multiorder)
+    * [status](#status)
+    * [stats](#stats)
     * [ordsize](#ordsize)
     * [downloader](#downloader)
     * [Example Setup](#example-setup)
@@ -67,13 +69,13 @@ Make sure you initialized planet client by typing ```planet init``` or ```export
 
 ```
 usage: pobatch [-h]
-               {version,quota,idlist,idsplit,bundles,multiorder,ordsize,downloader}
+               {version,quota,idlist,idsplit,bundles,multiorder,status,stats,ordsize,downloader}
                ...
 
 porder wrapper for Ordersv2 Batch Client
 
 positional arguments:
-  {version,quota,idlist,idsplit,bundles,multiorder,ordsize,downloader}
+  {version,quota,idlist,idsplit,bundles,multiorder,status,stats,ordsize,downloader}
     version             Prints porder version and exists
     quota               Prints your Planet Quota Details
     idlist              Get idlist using geometry & filters
@@ -81,6 +83,9 @@ positional arguments:
                         batches
     bundles             Check bundles of assets for given item type
     multiorder          Place multiple orders based on idlists in folder
+    status              Check order status on submitted orders
+    stats               Prints number of orders queued and running for org &
+                        user
     ordsize             Estimates total download size for each completed
                         order(Takes times)
     downloader          Download using order url list
@@ -182,7 +187,18 @@ pobatch idsplit --idlist "path to idlist.csv" --lines "number of lines in each i
 ```
 
 ### multiorder
-This tool allows you to place the order using the idlist that you created earlier. the ```--op``` argument allows you to take operations, delivery and notifications in a sequence for example ```--op toar clip email``` performs Top of Atmospheric reflectance, followed by clipping to your geometry and send you an email notification once the order has completed, failed or had any change of status. The list of operations is below and **order is important**.
+This tool allows you to actually place the order using the idlist that you created earlier. the ```--op``` argument allows you to take operations, delivery and notifications in a sequence for example ```--op toar clip email``` performs Top of Atmospheric reflectance, followed by clipping to your geometry and send you an email notification once the order has completed, failed or had any any change of status. An important changes is the concept of passing bundles instead of using assets. Bundles are predefined meaning all assets in a bundle are not available for an item your attempt at downloading that attempt will fail.
+
+For example if an item id '20181227_125554_0f4c' does not have surface reflectance asset type. So if you try to download this using bundle type analytic_sr_udm2 it will not work, similary if you order an item where a specific operation cannot be performed for example if you order visual and then try to do bandmath with four bands. These examples and more are where **fallback bundles** come in handy. Think of this as providing a list of bundles to keep trying if one bundle type fails. The priority goes left to right. You can provide comma seperated fallback bundles for example as
+
+```analytic_sr_udm2,analytic``` instead of ```analytic_sr_udm2``` to avoid certain items from failing to download.
+
+The list of operations for the ```--op``` are below and ** the order of these operations is important**
+
+clip|toar|comp
+                        osite|zip|zipall|compression|projection|kernel|aws|azu
+                        re|gcs|email <Choose indices from>:
+                        ndvi|gndvi|bndvi|ndwi|tvi|osavi|evi2|msavi2|sr
 
 <center>
 
@@ -190,6 +206,7 @@ op                | description                                                 
 ------------------|-------------------------------------------------------------------------------|
 clip | Clip imagery can handle single and multi polygon verify or create geojson.io
 toar | Top of Atmosphere Reflectance imagery generated for imagery
+harmonize| Harmonize Dove R (instrument type PS2.SD) data to classic dove (instrument type PS)
 composite | Composite number of images in a given order
 zip | Zip bundles together and creates downloads (each asset has a single bundle so multiple zip files)
 zipall | Create a single zip file containing all assets
@@ -216,7 +233,7 @@ Blue Normalized Difference Vegetation Index (BNDVI) | [Wang et al 2007](https://
 Transformed Vegetation Index (TVI) | [Broge and Leblanc 2000](https://www.sciencedirect.com/science/article/abs/pii/S0034425700001978)
 Optimized Soil Adjusted Vegetation Index (OSAVI) | [Rondeaux et al 1996](https://www.sciencedirect.com/science/article/abs/pii/0034425795001867)
 Enhanced Vegetation Index (EVI2) | [Jian et al 2008](https://www.sciencedirect.com/science/article/abs/pii/S0034425708001971)
-Normalized Difference Water Index (NDWI) | [Gao 1996](https://www.sciencedirect.com/science/article/abs/pii/S0034425796000673)
+Normalized Difference Water Index (NDWI) | [McFeeters 1996](https://www.tandfonline.com/doi/abs/10.1080/01431169608948714)
 Modified Soil-adjusted Vegetation Index v2 (MSAVI2) | [Qi 1994](https://www.sciencedirect.com/science/article/abs/pii/0034425794901341?via%3Dihub)
 
 </center>
@@ -240,7 +257,6 @@ Required named arguments.:
   --outfile OUTFILE     CSV file with list of order urls
   --errorlog ERRORLOG   Path to idlist it could not submit,error message log
                         csv file
-  --max MAX             Maximum concurrent orders allowed on account
   --item ITEM           Item Type PSScene4Band|PSOrthoTile|REOrthoTile etc
   --bundle BUNDLE       Bundle Type: analytic, analytic_sr,analytic_sr_udm2
 
@@ -263,8 +279,38 @@ Optional named arguments:
                         ndvi|gndvi|bndvi|ndwi|tvi|osavi|evi2|msavi2|sr
 ```
 
-### ordsize
+### status
+The status tool takes the order list created from the multiorder tool and simply queries the current status of the orders in the list. It prints out the index, order name and order status and is for a quick check on multiple orders.
 
+```
+usage: pobatch status [-h] [--orderlist ORDERLIST]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --orderlist ORDERLIST
+                        Orderlist created earlier
+```
+
+### stats
+The tool allows you to check on number of running and queued orders for both organization and user level. Using this is simple
+
+```
+pobatch stats
+```
+
+output should look like this:
+
+```
+Checking on all running orders...
+Total queued order for organization: 0
+Total running orders for organization: 1
+
+Total queued orders for user: 0
+Total running orders for user: 0
+```
+
+### ordsize
+The ordersize tool allows you to print the order sizes in human readable format like KB, MB, GB.
 
 ```
 usage: pobatch ordsize [-h] --infile INFILE
@@ -310,7 +356,19 @@ pobatch idsplit --idlist "idlist file created earlier" --lines "number of lines 
 * Now place order using idlists that you created. This requires you to set up a limit on the maximum number of concurrent orders you can place. This setups clips the image to a geometry, zips them and send you an email notification on completion.
 
 ```
-pobatch multiorder --infolder "folder where we save the split id files" --max "Maximum concurrent orders you can placed and allowed on your account" --outfile "path to an orderlist with order url" --item "PSScene4Band" --asset "analytic" --boundary "path to geometry.geojson" --op clip zip email
+pobatch multiorder --infolder "folder where we save the split id files" --outfile "path to an orderlist with order url" --item "PSScene4Band" --asset "analytic" --boundary "path to geometry.geojson" --op clip zip email
+```
+
+* Let us quickly get the status of the orders placed.
+
+```
+pobatch --orderlist "Full path to the order list"
+```
+
+* Let us now get the stats for our order number of order running and queuing for the organization and you as the user.
+
+```
+pobatch stats
 ```
 
 * Estimate order download size for each order (This is optional)
@@ -326,6 +384,12 @@ pobatch downloader --infile "Path to order url list" --folder "download folder" 
 ```
 
 ### Changelog
+
+**v0.0.8**
+* Cleaned multiorder tool now uses stats endpoint instead concurreny check.
+* Enhanced downloaders from porder v0.5.5 with much cleaner file check and download.
+* Added status tool to check status of orders placed and stats tool to check on running and queued orders.
+* General improvements to tool.
 
 **v0.0.7**
 * Added bundle and subscription id arguments to multiorder tool.
